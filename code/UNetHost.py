@@ -46,12 +46,6 @@ class Host:
         self.train_losses = []
         self.valid_losses = []
         self.test_metrics = None
-    
-    def normalize_target(self, target):
-        target = target.float()
-        if target.max() > 1 or target.min() < 0:
-            target = (target - target.min()) / (target.max() - target.min() + 1e-8)
-        return target
         
     def __evaluate_model(self, dataset):
         self.model.eval()
@@ -63,7 +57,7 @@ class Host:
         with torch.no_grad():
             for data, target in dataset:
                 data = data.float().to(self.device)
-                target = self.normalize_target(target).to(self.device)
+                target = target.float().to(self.device)
                 output = self.model(data)
                 total_loss += criterion(output, target).item()
                 total_iou += calculate_iou(output, target).item()
@@ -79,17 +73,17 @@ class Host:
             
     def __save_model(self, path: str = "models"):
         os.makedirs(path, exist_ok=True)
-        model_path = os.path.join(path, "host_model_unet.pth")
+        model_path = os.path.join(path, "host_model_unet_320.pth")
         torch.save(self.model.state_dict(), model_path)
         print(f"Model saved to {model_path}")
         
     def __save_training_data(self, path: str = "training_process_data"):
         os.makedirs(path, exist_ok=True)
-        np.save(os.path.join(path, "train_losses_unet.npy"), np.array(self.train_losses))
-        np.save(os.path.join(path, "valid_losses_unet.npy"), np.array(self.valid_losses))
+        np.save(os.path.join(path, "train_losses_unet_320.npy"), np.array(self.train_losses))
+        np.save(os.path.join(path, "valid_losses_unet_320.npy"), np.array(self.valid_losses))
         
         if self.test_metrics is not None:
-            np.save(os.path.join(path, "test_metrics_unet.npy"), np.array([
+            np.save(os.path.join(path, "test_metrics_unet_320.npy"), np.array([
                 self.test_metrics['loss'],
                 self.test_metrics['iou']
             ]))
@@ -99,11 +93,10 @@ class Host:
         self.model.to(self.device)
         
         train_dataset = self.data_loader["train"]
-        train2_dataset = self.data_loader["train2"]
         valid_dataset = self.data_loader["valid"]
         test_dataset = self.data_loader["test"]
         
-        optimizer = torch.optim.Adam(self.model.parameters(), lr=0.0001, weight_decay=1e-5)
+        optimizer = torch.optim.Adam(self.model.parameters(), lr=0.0005, weight_decay=1e-5)
         criterion = DiceBCELoss()
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=5, factor=0.5)
         
@@ -112,23 +105,10 @@ class Host:
             train_loss = 0
             num_batches = 0
             
-            # Training auf dem ersten Datensatz
-            for data, target in tqdm.tqdm(train_dataset, desc=f"Epoch {epoch+1}/{iterations} - Train 1"):
+            # Training
+            for data, target in tqdm.tqdm(train_dataset, desc=f"Epoch {epoch+1}/{iterations}"):
                 data = data.float().to(self.device)
-                target = self.normalize_target(target).to(self.device)
-                
-                optimizer.zero_grad()
-                output = self.model(data)
-                loss = criterion(output, target)
-                loss.backward()
-                optimizer.step()
-                train_loss += loss.item()
-                num_batches += 1
-                
-            # Training auf dem zweiten Datensatz
-            for data, target in tqdm.tqdm(train2_dataset, desc=f"Epoch {epoch+1}/{iterations} - Train 2"):
-                data = data.float().to(self.device)
-                target = self.normalize_target(target).to(self.device)
+                target = target.float().to(self.device)
                 
                 optimizer.zero_grad()
                 output = self.model(data)
@@ -138,14 +118,14 @@ class Host:
                 train_loss += loss.item()
                 num_batches += 1
             
-            # Validierung
+            # Validation
             self.model.eval()
             valid_loss = 0
             valid_batches = 0
             with torch.no_grad():
                 for data, target in valid_dataset:
                     data = data.float().to(self.device)
-                    target = self.normalize_target(target).to(self.device)
+                    target = target.float().to(self.device)
                     output = self.model(data)
                     valid_loss += criterion(output, target).item()
                     valid_batches += 1
@@ -180,7 +160,7 @@ class Host:
     def federated_training(self):
         pass
 
-def load_model(model_path: str = "models/host_model.pth"):
+def load_model(model_path: str = "models/host_model_unet.pth"):
     model = PupilSegmentationUNet()
     model.load_state_dict(torch.load(model_path))
     model.eval()
@@ -205,18 +185,15 @@ def visualize_predictions(model, data_loader, num_examples=5):
     fig, axes = plt.subplots(3, num_examples, figsize=(20, 12))
     
     for idx in range(num_examples):
-        # Originalbild
         img = images[idx].numpy().transpose(1, 2, 0)
         axes[0, idx].imshow(img.squeeze(), cmap='gray')
         axes[0, idx].axis('off')
         axes[0, idx].set_title('Original')
         
-        # Ground Truth Maske
-        axes[1, idx].imshow(masks[idx].numpy(), cmap='gray')
+        axes[1, idx].imshow(masks[idx].squeeze().numpy(), cmap='gray')
         axes[1, idx].axis('off')
         axes[1, idx].set_title('Ground Truth')
         
-        # Vorhergesagte Maske
         pred_mask = predictions[idx].numpy() > 0.5
         axes[2, idx].imshow(pred_mask.squeeze(), cmap='gray')
         axes[2, idx].axis('off')
@@ -226,17 +203,17 @@ def visualize_predictions(model, data_loader, num_examples=5):
     plt.show()
 
 if __name__ == "__main__":
-    unet = PupilSegmentationUNet()
-    data_loader = {
-        "train": create_data_loader("dataset/1k_images/host_data/training_data/binary_mask/annotations_binary_mask.csv", 
-                                  EyeBinaryMaskDataset, batch_size=8),
-        "train2": create_data_loader("dataset/1k_images/client_data/training_data/binary_mask/annotations_binary_mask.csv", 
-                                   EyeBinaryMaskDataset, batch_size=8),
-        "valid": create_data_loader("dataset/1k_images/host_data/valid_data/binary_mask/annotations_binary_mask.csv", 
-                                  EyeBinaryMaskDataset, batch_size=8),
-        "test": create_data_loader("dataset/1k_images/host_data/test_data/binary_mask/annotations_binary_mask.csv", 
-                                 EyeBinaryMaskDataset, batch_size=8)
-    }
+    # unet = PupilSegmentationUNet()
+    # data_loader = {
+    #     "train": create_data_loader("dataset/1k_images/host_data/training_data/binary_mask/annotations_binary_mask.csv", EyeBinaryMaskDataset),
+    #     "valid": create_data_loader("dataset/1k_images/host_data/valid_data/binary_mask/annotations_binary_mask.csv", EyeBinaryMaskDataset),
+    #     "test": create_data_loader("dataset/1k_images/host_data/test_data/binary_mask/annotations_binary_mask.csv", EyeBinaryMaskDataset)
+    # }
     
-    host = Host(unet, data_loader)
-    host.inital_training(20)
+    # host = Host(unet, data_loader)
+    # host.inital_training(50)
+
+    model = load_model("models/host_model_unet_320.pth")
+    test_loader = create_data_loader("dataset/1k_images/host_data/test_data/binary_mask/annotations_binary_mask.csv",
+                                   EyeBinaryMaskDataset, batch_size=5)
+    visualize_predictions(model, test_loader, num_examples=5)
