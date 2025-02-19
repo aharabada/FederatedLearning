@@ -47,14 +47,14 @@ class Host:
             'rmse': rmse.item()
         }
             
-    def __save_model(self, path: str = "models"):
+    def __save_model(self, path: str = "models_2"):
         os.makedirs(path, exist_ok=True)
         
         model_path = os.path.join(path, "host_model.pth")
         torch.save(self.model.state_dict(), model_path)
         print(f"Model saved to {model_path}")
         
-    def __save_training_data(self, path: str = "training_process_data"):
+    def __save_training_data(self, path: str = "training_process_data_2"):
         os.makedirs(path, exist_ok=True)
         
         # Save training metrics
@@ -76,6 +76,7 @@ class Host:
         self.model.to(self.device)
         
         train_dataset = self.data_loader["train"]
+        train2_dataset = self.data_loader["train2"] # TODO: only for training, since there is too few data by now
         valid_dataset = self.data_loader["valid"]
         test_dataset = self.data_loader["test"]
         
@@ -96,6 +97,20 @@ class Host:
                 loss.backward()
                 optimizer.step()
                 train_loss += loss.item()
+                
+            # TODO: only for training, since there is too few data by now
+            for data, target in tqdm.tqdm(train2_dataset):
+                data, target = data.to(self.device), target.to(self.device)
+                target = target.view(-1, 1).float()
+                
+                optimizer.zero_grad()
+                output = self.model(data)
+                loss = criterion(output, target)
+                loss.backward()
+                optimizer.step()
+                train_loss += loss.item()
+            # TODO end    
+            
             
             self.model.eval()
             valid_loss = 0
@@ -180,19 +195,18 @@ def visualize_predictions(model, data_loader, num_examples=5):
     plt.show()
 
 if __name__ == "__main__":
-    model = load_model()
-    test_loader = create_data_loader("dataset/1k_images/host_data/test_data/diameter/annotations_diameter.csv")
-    visualize_predictions(model, test_loader)
+    # model = load_model()
+    # test_loader = create_data_loader("dataset/1k_images/host_data/test_data/diameter/annotations_diameter.csv")
+    # visualize_predictions(model, test_loader)
     
-    """
-    # Training part commented out as requested
     cnn = CNN()
     data_loader = {
         "train": create_data_loader("dataset/1k_images/host_data/training_data/diameter/annotations_diameter.csv"),
+        "train2": create_data_loader("dataset/1k_images/client_data/training_data/diameter/annotations_diameter.csv"),  # TODO: only for training, since there is too few data by now
         "valid": create_data_loader("dataset/1k_images/host_data/valid_data/diameter/annotations_diameter.csv"),
         "test": create_data_loader("dataset/1k_images/host_data/test_data/diameter/annotations_diameter.csv")
     }
     
     host = Host(cnn, data_loader)
     host.inital_training(100)
-    """
+    
