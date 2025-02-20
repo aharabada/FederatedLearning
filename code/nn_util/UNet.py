@@ -82,3 +82,11 @@ class PupilSegmentationUNet(nn.Module):
         
         # Finale 1x1 Convolution und Sigmoid für binäre Segmentierung
         return torch.sigmoid(self.final_conv(x))
+    
+    
+    
+def load_model(model_path: str = "models/host_model_unet.pth"):
+    model = PupilSegmentationUNet()
+    model.load_state_dict(torch.load(model_path))
+    model.eval()
+    return model
