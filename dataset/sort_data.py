@@ -14,19 +14,17 @@ for file in os.listdir('dataset/1k_images'):
     if os.path.isdir(f'dataset/1k_images/{file}'):
         continue
     
-    # differentiate between host or client data. 40% of data for host, 60% for clients    
+    # differentiate between host or client data. 40% of data for host, 50% for clients and 10% for final test
     if count < 320:
         destination = 'host_data/training_data'
     elif 320 <= count < 340:
         destination = 'host_data/valid_data'
     elif 340 <= count < 400:
         destination = 'host_data/test_data'
-    elif 400 <= count < 880:
+    elif 400 <= count < 900:
         destination = 'client_data/training_data'
-    elif 880 <= count < 940:
-        destination = 'client_data/valid_data'
     else:
-        destination = 'client_data/test_data'
+        destination = 'final_test/'
     
     # check if destination folder exists, if not create necessary folders and files
     if not os.path.exists(f'dataset/1k_images/{destination}'):

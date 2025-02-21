@@ -33,12 +33,15 @@ class EyeDiameterDataset(Dataset):
     
     
 class EyeBinaryMaskDataset(Dataset):
-    def __init__(self, annotations_file: str):
-        self.img_labels = pd.read_csv(annotations_file)
+    def __init__(self, annotations_file: str, preprocess: bool = True, length: int = 0):
         self.data = []
         self.labels = []
-        self.__preprocess_data()
-        self.__preprocess_labels()
+        self.length = length
+        if preprocess:
+            self.img_labels = pd.read_csv(annotations_file)
+            self.length = len(self.img_labels)
+            self.__preprocess_data()
+            self.__preprocess_labels()
         
     def __preprocess_data(self):
         for idx in range(len(self.img_labels)):
@@ -77,14 +80,14 @@ class EyeBinaryMaskDataset(Dataset):
             self.labels.append(label)
        
     def __len__(self):
-        return len(self.img_labels)
+        return self.length
    
     def __getitem__(self, idx):
         return self.data[idx], self.labels[idx]
 
 
-def create_data_loader(dataset_path: str, dataset_type: object = EyeDiameterDataset, batch_size: int = 64) -> torch.utils.data.DataLoader:
-    dataset = dataset_type(dataset_path)
+def create_data_loader(dataset_path: str, dataset_type: object = EyeDiameterDataset, batch_size: int = 64, preprocess: bool = True, length: int = 0) -> torch.utils.data.DataLoader:
+    dataset = dataset_type(dataset_path, preprocess, length)
     dataloader = torch.utils.data.DataLoader(
         dataset=dataset,
         batch_size=batch_size,

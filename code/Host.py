@@ -19,7 +19,7 @@ class Host:
         self.valid_losses = []
         self.test_metrics = None
         
-    def __evaluate_model(self, dataset):
+    def evaluate_model(self, dataset):
         self.model.eval()
         criterion = DiceBCELoss()
         total_loss = 0
@@ -119,7 +119,7 @@ class Host:
         self.__save_model()
         
         print("\nEvaluating final model performance on test set...")
-        self.test_metrics = self.__evaluate_model(test_dataset)
+        self.test_metrics = self.evaluate_model(test_dataset)
         
         print("\nFinal Test Results:")
         print("=" * 50)
@@ -129,11 +129,8 @@ class Host:
         
         self.__save_training_data()
         
-    def train(self, iterations: int):
-        pass
-        
-    def recieve_client_parameters(self):
-        pass
+    def update_model(self, new_parameters: dict):
+        self.model.load_state_dict(new_parameters, strict=True)
 
 
 
