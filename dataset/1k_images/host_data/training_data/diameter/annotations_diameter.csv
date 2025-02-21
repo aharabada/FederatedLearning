@@ -111,6 +111,7 @@ dataset/1k_images/host_data/training_data/data/final_render_198_y19.19_z26.98_pu
 dataset/1k_images/host_data/training_data/data/final_render_199_y9.99_z8.83_pupil_diameter_1.86mm.png,1.86
 dataset/1k_images/host_data/training_data/data/final_render_19_y13.64_z2.24_pupil_diameter_2.08mm.png,2.08
 dataset/1k_images/host_data/training_data/data/final_render_1_y-24.68_z14.40_pupil_diameter_5.18mm.png,5.18
+dataset/1k_images/host_data/training_data/data/final_render_1_y1.67_z28.44_pupil_diameter_2.26mm.png,2.26
 dataset/1k_images/host_data/training_data/data/final_render_200_y4.95_z-4.43_pupil_diameter_1.89mm.png,1.89
 dataset/1k_images/host_data/training_data/data/final_render_201_y-5.15_z3.03_pupil_diameter_5.25mm.png,5.25
 dataset/1k_images/host_data/training_data/data/final_render_202_y-7.93_z-27.32_pupil_diameter_5.74mm.png,5.74
@@ -318,4 +319,3 @@ dataset/1k_images/host_data/training_data/data/final_render_384_y-14.07_z-14.01_
 dataset/1k_images/host_data/training_data/data/final_render_385_y6.37_z-14.73_pupil_diameter_5.06mm.png,5.06
 dataset/1k_images/host_data/training_data/data/final_render_386_y6.96_z13.33_pupil_diameter_6.36mm.png,6.36
 dataset/1k_images/host_data/training_data/data/final_render_387_y0.51_z28.43_pupil_diameter_7.60mm.png,7.60
-dataset/1k_images/host_data/training_data/data/final_render_388_y11.96_z-9.76_pupil_diameter_4.56mm.png,4.56

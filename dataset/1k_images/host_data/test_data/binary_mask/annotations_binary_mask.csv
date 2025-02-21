@@ -1,4 +1,5 @@
 image_path,binary_mask_path
+dataset/1k_images/host_data/test_data/data/final_render_405_y15.92_z21.27_pupil_diameter_2.55mm.png,dataset/1k_images/host_data/test_data/binary_mask/final_render_405_y15.92_z21.27_pupil_diameter_2.55mm.jpg0405.jpg
 dataset/1k_images/host_data/test_data/data/final_render_406_y23.39_z-2.04_pupil_diameter_5.63mm.png,dataset/1k_images/host_data/test_data/binary_mask/final_render_406_y23.39_z-2.04_pupil_diameter_5.63mm.jpg0406.jpg
 dataset/1k_images/host_data/test_data/data/final_render_407_y22.95_z-21.11_pupil_diameter_3.91mm.png,dataset/1k_images/host_data/test_data/binary_mask/final_render_407_y22.95_z-21.11_pupil_diameter_3.91mm.jpg0407.jpg
 dataset/1k_images/host_data/test_data/data/final_render_408_y-17.70_z6.32_pupil_diameter_4.12mm.png,dataset/1k_images/host_data/test_data/binary_mask/final_render_408_y-17.70_z6.32_pupil_diameter_4.12mm.jpg0408.jpg
@@ -58,4 +59,3 @@ dataset/1k_images/host_data/test_data/data/final_render_456_y7.96_z-15.73_pupil_
 dataset/1k_images/host_data/test_data/data/final_render_457_y-29.63_z1.42_pupil_diameter_6.45mm.png,dataset/1k_images/host_data/test_data/binary_mask/final_render_457_y-29.63_z1.42_pupil_diameter_6.45mm.jpg0457.jpg
 dataset/1k_images/host_data/test_data/data/final_render_458_y-16.60_z14.84_pupil_diameter_4.39mm.png,dataset/1k_images/host_data/test_data/binary_mask/final_render_458_y-16.60_z14.84_pupil_diameter_4.39mm.jpg0458.jpg
 dataset/1k_images/host_data/test_data/data/final_render_459_y13.97_z-13.89_pupil_diameter_5.39mm.png,dataset/1k_images/host_data/test_data/binary_mask/final_render_459_y13.97_z-13.89_pupil_diameter_5.39mm.jpg0459.jpg
-dataset/1k_images/host_data/test_data/data/final_render_45_y4.33_z-10.15_pupil_diameter_3.37mm.png,dataset/1k_images/host_data/test_data/binary_mask/final_render_45_y4.33_z-10.15_pupil_diameter_3.37mm.jpg0045.jpg

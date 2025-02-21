@@ -102,10 +102,10 @@ class PupilSegmentationUNet(nn.Module):
             num_samples (int): Anzahl der Monte Carlo Samples
             
         Returns:
-            dict: Dictionary mit mean_prediction, std_prediction und entropy
+            dict: Dictionary mit mean_prediction, std_prediction und uncertainty
         """
-        self.eval()  # Modell in Evaluierungsmodus setzen
-        self.enable_dropout()  # Dropout während Inferenz aktivieren
+        self.eval()
+        self.enable_dropout()
         
         predictions = []
         with torch.no_grad():
@@ -118,17 +118,14 @@ class PupilSegmentationUNet(nn.Module):
         mean_prediction = torch.mean(predictions, dim=0)
         std_prediction = torch.std(predictions, dim=0)
         
-        # Berechne Entropy als Unsicherheitsmaß
-        # Clip values to avoid log(0)
-        epsilon = 1e-7
-        mean_prediction_clipped = torch.clamp(mean_prediction, epsilon, 1-epsilon)
-        entropy = -(mean_prediction_clipped * torch.log(mean_prediction_clipped) + 
-                   (1 - mean_prediction_clipped) * torch.log(1 - mean_prediction_clipped))
+        # Nutze die Standardabweichung als Unsicherheitsmaß
+        # Optional: Normalisiere die Standardabweichung auf [0,1]
+        uncertainty = std_prediction / (torch.max(std_prediction) + 1e-8)
         
         return {
             'mean_prediction': mean_prediction,
             'std_prediction': std_prediction,
-            'entropy': entropy
+            'uncertainty': uncertainty  # Ersetzt die Entropie
         }
 
 def load_model(model_path: str = "models/host_model_unet.pth", dropout_p: float = 0.1):
