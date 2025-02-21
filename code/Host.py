@@ -129,7 +129,10 @@ class Host:
         
         self.__save_training_data()
         
-    def federated_training(self):
+    def train(self, iterations: int):
+        pass
+        
+    def recieve_client_parameters(self):
         pass
 
 
