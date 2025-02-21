@@ -45,17 +45,17 @@ class Host:
             
     def __save_model(self, path: str = "models"):
         os.makedirs(path, exist_ok=True)
-        model_path = os.path.join(path, "host_model_unet_320.pth")
+        model_path = os.path.join(path, "host_model_unet_320_dropout.pth")
         torch.save(self.model.state_dict(), model_path)
         print(f"Model saved to {model_path}")
         
     def __save_training_data(self, path: str = "training_process_data"):
         os.makedirs(path, exist_ok=True)
-        np.save(os.path.join(path, "train_losses_unet_320.npy"), np.array(self.train_losses))
-        np.save(os.path.join(path, "valid_losses_unet_320.npy"), np.array(self.valid_losses))
+        np.save(os.path.join(path, "train_losses_unet_320_dropout.npy"), np.array(self.train_losses))
+        np.save(os.path.join(path, "valid_losses_unet_320_dropout.npy"), np.array(self.valid_losses))
         
         if self.test_metrics is not None:
-            np.save(os.path.join(path, "test_metrics_unet_320.npy"), np.array([
+            np.save(os.path.join(path, "test_metrics_unet_320_dropout.npy"), np.array([
                 self.test_metrics['loss'],
                 self.test_metrics['iou']
             ]))
@@ -179,17 +179,17 @@ def visualize_predictions(model, data_loader, num_examples=5):
     plt.show()
 
 if __name__ == "__main__":
-    # unet = PupilSegmentationUNet()
-    # data_loader = {
-    #     "train": create_data_loader("dataset/1k_images/host_data/training_data/binary_mask/annotations_binary_mask.csv", EyeBinaryMaskDataset),
-    #     "valid": create_data_loader("dataset/1k_images/host_data/valid_data/binary_mask/annotations_binary_mask.csv", EyeBinaryMaskDataset),
-    #     "test": create_data_loader("dataset/1k_images/host_data/test_data/binary_mask/annotations_binary_mask.csv", EyeBinaryMaskDataset)
-    # }
+    unet = PupilSegmentationUNet()
+    data_loader = {
+        "train": create_data_loader("dataset/1k_images/host_data/training_data/binary_mask/annotations_binary_mask.csv", EyeBinaryMaskDataset),
+        "valid": create_data_loader("dataset/1k_images/host_data/valid_data/binary_mask/annotations_binary_mask.csv", EyeBinaryMaskDataset),
+        "test": create_data_loader("dataset/1k_images/host_data/test_data/binary_mask/annotations_binary_mask.csv", EyeBinaryMaskDataset)
+    }
     
-    # host = Host(unet, data_loader)
-    # host.inital_training(50)
+    host = Host(unet, data_loader)
+    host.inital_training(50)
 
-    model = load_model("models/host_model_unet_320.pth")
-    test_loader = create_data_loader("dataset/1k_images/host_data/test_data/binary_mask/annotations_binary_mask.csv",
-                                   EyeBinaryMaskDataset, batch_size=5)
-    visualize_predictions(model, test_loader, num_examples=5)
+    # model = load_model("models/host_model_unet_320.pth")
+    # test_loader = create_data_loader("dataset/1k_images/host_data/test_data/binary_mask/annotations_binary_mask.csv",
+    #                                EyeBinaryMaskDataset, batch_size=5)
+    # visualize_predictions(model, test_loader, num_examples=5)
