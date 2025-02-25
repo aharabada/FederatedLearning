@@ -176,17 +176,17 @@ def visualize_predictions(model, data_loader, num_examples=5):
     plt.show()
 
 if __name__ == "__main__":
-    unet = PupilSegmentationUNet()
-    data_loader = {
-        "train": create_data_loader("dataset/1k_images/host_data/training_data/binary_mask/annotations_binary_mask.csv", EyeBinaryMaskDataset),
-        "valid": create_data_loader("dataset/1k_images/host_data/valid_data/binary_mask/annotations_binary_mask.csv", EyeBinaryMaskDataset),
-        "test": create_data_loader("dataset/1k_images/host_data/test_data/binary_mask/annotations_binary_mask.csv", EyeBinaryMaskDataset)
-    }
-    
-    host = Host(unet, data_loader)
-    host.inital_training(25)
+    # unet = PupilSegmentationUNet()
+    # data_loader = {
+    #     "train": create_data_loader("dataset/1k_images/host_data/training_data/binary_mask/annotations_binary_mask.csv", EyeBinaryMaskDataset),
+    #     "valid": create_data_loader("dataset/1k_images/host_data/valid_data/binary_mask/annotations_binary_mask.csv", EyeBinaryMaskDataset),
+    #     "test": create_data_loader("dataset/1k_images/host_data/test_data/binary_mask/annotations_binary_mask.csv", EyeBinaryMaskDataset)
+    # }
+    #
+    # host = Host(unet, data_loader)
+    # host.inital_training(25)
 
-    # model = load_model("models/host_model_unet_320.pth")
-    # test_loader = create_data_loader("dataset/1k_images/host_data/test_data/binary_mask/annotations_binary_mask.csv",
-    #                                EyeBinaryMaskDataset, batch_size=5)
-    # visualize_predictions(model, test_loader, num_examples=5)
+    model = load_model("models/host_model_after_very_good_CI_5_CB_1.pth")
+    test_loader = create_data_loader("dataset/1k_images/host_data/test_data/binary_mask/annotations_binary_mask.csv",
+                                   EyeBinaryMaskDataset, batch_size=5)
+    visualize_predictions(model, test_loader, num_examples=5)

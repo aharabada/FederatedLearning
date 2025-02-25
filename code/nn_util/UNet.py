@@ -127,6 +127,30 @@ class PupilSegmentationUNet(nn.Module):
             'uncertainty': uncertainty
         }
 
+    def mc_consistency_loss(self, image, num_samples=10):
+        # MC-Dropout aktivieren (eval-Modus, aber Dropout an!)
+
+        #self.eval()
+        #self.enable_dropout()
+        self.train()
+        self.enable_dropout()
+
+        predictions = []
+        #with torch.no_grad():  # Keine Gradienten für die Vorhersagen
+        # 🔥🔥🔥 ENTFERNE "torch.no_grad()" und nutze "with torch.enable_grad()" 🔥🔥🔥
+        with torch.enable_grad():  # Gradienten für die Vorhersagen aktivieren
+            for _ in range(num_samples):
+                pred = self(image)  # Segmentierung als Probabilites
+                predictions.append(pred)
+        predictions = torch.stack(predictions)  # Shape: [num_samples, C, H, W]
+
+        # Varianz über die Samples berechnen (Unsicherheit)
+        variance = torch.var(predictions, dim=0)  # Shape: [C, H, W]
+
+        # Loss = Durchschnittliche Varianz minimieren
+        loss = torch.mean(variance)  # Je geringer die Varianz, desto konsistenter die Vorhersagen
+        return loss
+
 def load_model(model_path, dropout_p: float = 0.1):
     model = PupilSegmentationUNet(dropout_p=dropout_p)
     model.load_state_dict(torch.load(model_path))

@@ -39,9 +39,10 @@ class Client:
                 
                 if labeling_method == "monte carlo dropout":
                     # Monte Carlo Inference to create own labels
-                    info = self.model.monte_carlo_inference(data, num_samples=16)
-                    target = info['mean_prediction']
-                    uncertainty = info['uncertainty']  # Jetzt uncertainty statt entropy
+                    #info = self.model.monte_carlo_inference(data, num_samples=16)
+                    #target = info['mean_prediction']
+                    #uncertainty = info['uncertainty']  # Jetzt uncertainty statt entropy
+                    loss = self.model.mc_consistency_loss(data)
                 elif labeling_method == "true labels":
                     uncertainty = 0
                 elif labeling_method == "contrastive learning":
@@ -50,21 +51,21 @@ class Client:
                 else:
                     raise Exception(f"Unknown labeling method: {labeling_method}")
                     
-                target = target.float().to(self.device)
+                #target = target.float().to(self.device)
                 
                 optimizer.zero_grad()
-                output = self.model(data)
-                loss = criterion(output, target)
+                #output = self.model(data)
+                #loss = criterion(output, target)
                 
                 # Skaliere den Loss pixel-weise mit der Unsicherheit
-                scaling_factor = 1.0 / (1.0 + uncertainty)
+                #scaling_factor = 1.0 / (1.0 + uncertainty)
                 
                 
-                scaled_loss = loss * scaling_factor
-                scaled_loss = scaled_loss.mean()  # Mitteln über alle Pixel
-                
-                scaled_loss.backward()
-                #loss.backward()
+                #caled_loss = loss * scaling_factor
+                #scaled_loss = scaled_loss.mean()  # Mitteln über alle Pixel
+
+                #scaled_loss.backward()
+                loss.backward()
                 optimizer.step()
                 
                 total_loss += loss.item()
@@ -73,7 +74,7 @@ class Client:
             avg_loss = total_loss / num_samples
             self.train_losses.append(avg_loss)
             
-            print(f"Epoch {epoch + 1}/{iterations} - Train Loss: {avg_loss:.4f}")
+            print(f"Epoch {epoch + 1}/{iterations} - Train Loss: {avg_loss}")
             
     def fetch_parameters(self):
         return self.model.state_dict()
