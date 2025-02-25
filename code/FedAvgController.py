@@ -4,15 +4,16 @@ import torch
 
 from Client import Client
 from Host import Host
+from DataCollector import data_collector
 from nn_util.UNet import load_model
 from nn_util.DataSet import create_data_loader, EyeBinaryMaskDataset
 from nn_util.Names import names
 
 
 class FedAvgController:
-    N_CLIENTS = 2
+    N_CLIENTS = 4
     N_DATAPOINTS_PER_ROUND = 64
-    CLIENT_ITERATIONS = 3
+    CLIENT_ITERATIONS = 1
     CLIENT_BATCH_SIZE = 8
     ROUNDS = 10
     
@@ -78,8 +79,20 @@ class FedAvgController:
         print(f"Test Loss: {test_metrics['loss']:.6f}")
         print(f"Test IoU: {test_metrics['iou']:.6f}")
         print("=" * 50)
+        return test_metrics
         
-    def run(self):
+    @data_collector
+    def run(self, test: bool, data):
+        # setting up data collector
+        data.experiment = "FedAvg, MCDropout"
+        data.plot_data = {"Loss": [], "IoU": []}
+        
+        # initial testing (if test is True)
+        if test:
+            test_metrics = self.test_model()
+            data.plot_data["Loss"].append(test_metrics["loss"])
+            data.plot_data["IoU"].append(test_metrics["iou"])
+                
         for iteration in range(self.ROUNDS):
             print(f"\nStarting round {iteration + 1}/{self.ROUNDS}...")
             print("=" * 50)
@@ -107,6 +120,12 @@ class FedAvgController:
             print("\nSending updated model to clients...")
             for client in self.clients:
                 client.update_model(self.host.model.state_dict())
+                
+            # testing host (if test is True)
+            if test:
+                test_metrics = self.test_model()
+                data.plot_data["Loss"].append(test_metrics["loss"])
+                data.plot_data["IoU"].append(test_metrics["iou"])
 
 
 
