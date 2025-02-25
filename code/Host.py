@@ -184,7 +184,7 @@ if __name__ == "__main__":
     }
     
     host = Host(unet, data_loader)
-    host.inital_training(50)
+    host.inital_training(25)
 
     # model = load_model("models/host_model_unet_320.pth")
     # test_loader = create_data_loader("dataset/1k_images/host_data/test_data/binary_mask/annotations_binary_mask.csv",

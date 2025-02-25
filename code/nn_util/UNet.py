@@ -83,25 +83,25 @@ class PupilSegmentationUNet(nn.Module):
         x = torch.cat([x, conv1], dim=1)
         x = self.conv_up4(x)
         
-        # Finale 1x1 Convolution und Sigmoid für binäre Segmentierung
+        # Final 1x1 Convolution for binary segmentation
         return torch.sigmoid(self.final_conv(x))
 
     def enable_dropout(self):
-        """Aktiviert Dropout-Layer auch während der Inferenz"""
+        """Activates Dropout Layers for Monte Carlo Inference"""
         for m in self.modules():
             if isinstance(m, nn.Dropout2d):
                 m.train()
 
-    def monte_carlo_inference(self, x: torch.Tensor, num_samples: int = 32) -> dict:
+    def monte_carlo_inference(self, x: torch.Tensor, num_samples: int = 8) -> dict:
         """
-        Führt Monte Carlo Dropout Inferenz durch.
+        Executes Monte Carlo Inference.
         
         Args:
-            x (torch.Tensor): Eingabebild
-            num_samples (int): Anzahl der Monte Carlo Samples
+            x (torch.Tensor): Input image
+            num_samples (int): Amount of Monte Carlo samples
             
         Returns:
-            dict: Dictionary mit mean_prediction, std_prediction und uncertainty
+            dict: Dictionary with mean_prediction, std_prediction and uncertainty
         """
         self.eval()
         self.enable_dropout()

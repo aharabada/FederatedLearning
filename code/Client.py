@@ -39,7 +39,7 @@ class Client:
                 
                 if labeling_method == "monte carlo dropout":
                     # Monte Carlo Inference to create own labels
-                    info = self.model.monte_carlo_inference(data)
+                    info = self.model.monte_carlo_inference(data, num_samples=16)
                     target = info['mean_prediction']
                     uncertainty = info['uncertainty']  # Jetzt uncertainty statt entropy
                 elif labeling_method == "true labels":
