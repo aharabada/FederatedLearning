@@ -1,4 +1,4 @@
-from copy import deepcopy
+from copy import deepcopy, copy
 import random
 import torch
 
@@ -6,30 +6,24 @@ from Client import Client
 from Host import Host
 from nn_util.UNet import load_model
 from nn_util.DataSet import create_data_loader, EyeBinaryMaskDataset
+from nn_util.Names import names
 
 
 class FedAvgController:
-    client_names = [
-        "Hans", "Fritz", "Günther", "Klaus", "Wolfgang",
-        "Bernd", "Uwe", "Dieter", "Heinz", "Horst",
-        "Jürgen", "Rainer", "Gerhard", "Manfred", "Erwin",
-        "Otto", "Wilhelm", "Karl", "Ludwig", "Siegfried",
-        "Herbert", "Norbert", "Egon", "Helmut", "Reinhard",
-        "Monika", "Gisela", "Brigitte", "Ursula", "Renate",
-        "Ingrid", "Elke", "Helga", "Gertrud", "Marianne",
-        "Roswitha", "Waltraud", "Hannelore", "Margot", "Erika",
-        "Bärbel", "Christa", "Anneliese", "Ilse", "Edith",
-        "Heidemarie", "Petra", "Elfriede", "Dorothea", "Friederike"
-    ]
     N_CLIENTS = 2
-    CLIENT_ITERATIONS = 1
-    CLIENT_BATCH_SIZE = 4
+    N_DATAPOINTS_PER_ROUND = 64
+    CLIENT_ITERATIONS = 3
+    CLIENT_BATCH_SIZE = 8
+    ROUNDS = 10
     
     def __init__(self, path_to_host_model: str, config: dict = {}):
+        self.client_names = copy(names)
         # load config
         self.N_CLIENTS = config.get("N_CLIENTS", self.N_CLIENTS)
         self.CLIENT_ITERATIONS = config.get("CLIENT_ITERATIONS", self.CLIENT_ITERATIONS)
         self.CLIENT_BATCH_SIZE = config.get("CLIENT_BATCH_SIZE", self.CLIENT_BATCH_SIZE)
+        self.N_DATAPOINTS_PER_ROUND = config.get("N_DATAPOINTS_PER_ROUND", self.N_DATAPOINTS_PER_ROUND)
+        self.ROUNDS = config.get("ROUNDS", 20)
         # prepare host
         self.host = Host(load_model(model_path=path_to_host_model), None)
         self.host.model.to(self.host.device)
@@ -85,14 +79,15 @@ class FedAvgController:
         print(f"Test IoU: {test_metrics['iou']:.6f}")
         print("=" * 50)
         
-    def run(self, iterations):
-        for iteration in range(iterations):
-            print(f"\nStarting round {iteration + 1}/{iterations}...")
+    def run(self):
+        for iteration in range(self.ROUNDS):
+            print(f"\nStarting round {iteration + 1}/{self.ROUNDS}...")
+            print("=" * 50)
             
             # train each client
             for i, client in enumerate(self.clients):
                 print(f"\nTraining Client {client.name} ({i + 1}/{self.N_CLIENTS})...")
-                client.train(self.CLIENT_ITERATIONS)
+                client.train(self.CLIENT_ITERATIONS, n_datapoints=self.N_DATAPOINTS_PER_ROUND)
                 
             # fetch client data
             print("\nFetching client data...")
@@ -120,10 +115,9 @@ class FedAvgController:
         
         
 if __name__ == "__main__":
-    ROUNDS = 1
     controller = FedAvgController("models/host_model_unet_320_dropout_75.pth")
-    print(f"\nPerformence before FedAvg (Rounds: {ROUNDS}, Clients: {controller.N_CLIENTS}, Client Iterations: {controller.CLIENT_ITERATIONS} Client BatchSize: {controller.CLIENT_BATCH_SIZE}):")
+    print(f"\nPerformence before FedAvg (Rounds: {controller.ROUNDS}, Clients: {controller.N_CLIENTS}, Client Iterations: {controller.CLIENT_ITERATIONS} Client BatchSize: {controller.CLIENT_BATCH_SIZE}, Datapoints: {controller.N_DATAPOINTS_PER_ROUND}):")
     controller.test_model()
-    controller.run(ROUNDS)
-    print(f"Performence after FedAvg (Rounds: {ROUNDS}, Clients: {controller.N_CLIENTS}, Client Iterations: {controller.CLIENT_ITERATIONS} Client BatchSize: {controller.CLIENT_BATCH_SIZE}):")
+    controller.run()
+    print(f"\nPerformence after FedAvg (Rounds: {controller.ROUNDS}, Clients: {controller.N_CLIENTS}, Client Iterations: {controller.CLIENT_ITERATIONS} Client BatchSize: {controller.CLIENT_BATCH_SIZE}, Datapoints: {controller.N_DATAPOINTS_PER_ROUND}):")
     controller.test_model()

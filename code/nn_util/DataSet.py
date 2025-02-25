@@ -80,7 +80,10 @@ class EyeBinaryMaskDataset(Dataset):
             self.labels.append(label)
        
     def __len__(self):
-        return self.length
+        if self.data is not None and self.labels is not None and len(self.data) > 0 and len(self.labels) > 0 and len(self.data) == len(self.labels):
+            return len(self.data)
+        else:
+            return self.length
    
     def __getitem__(self, idx):
         return self.data[idx], self.labels[idx]

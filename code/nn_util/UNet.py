@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
 
 class DoubleConv(nn.Module):
     def __init__(self, in_channels, out_channels, dropout_p=0.1):
@@ -93,7 +92,7 @@ class PupilSegmentationUNet(nn.Module):
             if isinstance(m, nn.Dropout2d):
                 m.train()
 
-    def monte_carlo_inference(self, x: torch.Tensor, num_samples: int = 30) -> dict:
+    def monte_carlo_inference(self, x: torch.Tensor, num_samples: int = 32) -> dict:
         """
         Führt Monte Carlo Dropout Inferenz durch.
         
@@ -125,10 +124,10 @@ class PupilSegmentationUNet(nn.Module):
         return {
             'mean_prediction': mean_prediction,
             'std_prediction': std_prediction,
-            'uncertainty': uncertainty  # Ersetzt die Entropie
+            'uncertainty': uncertainty
         }
 
-def load_model(model_path: str = "models/host_model_unet.pth", dropout_p: float = 0.1):
+def load_model(model_path, dropout_p: float = 0.1):
     model = PupilSegmentationUNet(dropout_p=dropout_p)
     model.load_state_dict(torch.load(model_path))
     return model

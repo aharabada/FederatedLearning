@@ -1,5 +1,7 @@
 import torch
 import tqdm
+import random
+import copy
 
 from nn_util.Metrics import DiceBCELoss
 
@@ -11,12 +13,18 @@ class Client:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print(f"{self.name} Device: {self.device}")
         self.train_losses = []
-        self.test_metrics = None
         
-    def train(self, iterations: int):
+    def train(self, iterations: int, n_datapoints: int = 0):
+        if n_datapoints <= 0:
+            n_datapoints = len(self.data_loader.dataset)
+            
         self.model.to(self.device)
         
-        train_dataset = self.data_loader
+        # randomly choose n_datapoints from the dataset
+        train_dataset = copy.deepcopy(self.data_loader)
+        idx = random.sample(range(len(train_dataset.dataset)), n_datapoints)
+        train_dataset.dataset.data = [train_dataset.dataset.data[i] for i in idx]
+        train_dataset.dataset.labels = [train_dataset.dataset.labels[i] for i in idx]
         
         criterion = DiceBCELoss()
         optimizer = torch.optim.Adam(self.model.parameters(), lr=1e-4)
@@ -34,17 +42,23 @@ class Client:
                 target = info['mean_prediction']
                 target = target.float().to(self.device)
                 uncertainty = info['uncertainty']  # Jetzt uncertainty statt entropy
+                #target = target.float().to(self.device)
+                std = info['std_prediction']
+                #print(std.mean())
                 
                 optimizer.zero_grad()
                 output = self.model(data)
                 loss = criterion(output, target)
                 
                 # Skaliere den Loss pixel-weise mit der Unsicherheit
-                scaling_factor = 1.0 / (1.0 + uncertainty) 
-                scaled_loss = loss * scaling_factor
+                scaling_factor = 1.0 / (1.0 + uncertainty)
+                
+                
+                scaled_loss = loss * scaling_factor * 0.1
                 scaled_loss = scaled_loss.mean()  # Mitteln über alle Pixel
                 
                 scaled_loss.backward()
+                #loss.backward()
                 optimizer.step()
                 
                 total_loss += loss.item()
