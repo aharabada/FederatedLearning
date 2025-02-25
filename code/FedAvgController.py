@@ -82,7 +82,7 @@ class FedAvgController:
         return test_metrics
         
     @data_collector
-    def run(self, test: bool, data):
+    def run(self, test: bool, labeling_method: str, data):
         # setting up data collector
         data.experiment = "FedAvg, MCDropout"
         data.plot_data = {"Loss": [], "IoU": []}
@@ -100,7 +100,9 @@ class FedAvgController:
             # train each client
             for i, client in enumerate(self.clients):
                 print(f"\nTraining Client {client.name} ({i + 1}/{self.N_CLIENTS})...")
-                client.train(self.CLIENT_ITERATIONS, n_datapoints=self.N_DATAPOINTS_PER_ROUND)
+                client.train(self.CLIENT_ITERATIONS,
+                             n_datapoints=self.N_DATAPOINTS_PER_ROUND,
+                             labeling_method=labeling_method)
                 
             # fetch client data
             print("\nFetching client data...")

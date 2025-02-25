@@ -14,7 +14,7 @@ class Client:
         print(f"{self.name} Device: {self.device}")
         self.train_losses = []
         
-    def train(self, iterations: int, n_datapoints: int = 0):
+    def train(self, iterations: int, n_datapoints: int = 0, labeling_method: str = "true labels"):
         if n_datapoints <= 0:
             n_datapoints = len(self.data_loader.dataset)
             
@@ -34,17 +34,23 @@ class Client:
             total_loss = 0
             num_samples = 0
             
-            for data, _ in tqdm.tqdm(train_dataset, desc=f"Epoch {epoch+1}/{iterations}"):
+            for data, target in tqdm.tqdm(train_dataset, desc=f"Epoch {epoch+1}/{iterations}"):
                 data = data.float().to(self.device)
                 
-                # Monte Carlo Inference to create own labels
-                info = self.model.monte_carlo_inference(data)
-                target = info['mean_prediction']
+                if labeling_method == "monte carlo dropout":
+                    # Monte Carlo Inference to create own labels
+                    info = self.model.monte_carlo_inference(data)
+                    target = info['mean_prediction']
+                    uncertainty = info['uncertainty']  # Jetzt uncertainty statt entropy
+                elif labeling_method == "true labels":
+                    uncertainty = 0
+                elif labeling_method == "contrastive learning":
+                    # TODO: implement me
+                    uncertainty = 0
+                else:
+                    raise Exception(f"Unknown labeling method: {labeling_method}")
+                    
                 target = target.float().to(self.device)
-                uncertainty = info['uncertainty']  # Jetzt uncertainty statt entropy
-                #target = target.float().to(self.device)
-                std = info['std_prediction']
-                #print(std.mean())
                 
                 optimizer.zero_grad()
                 output = self.model(data)
@@ -54,7 +60,7 @@ class Client:
                 scaling_factor = 1.0 / (1.0 + uncertainty)
                 
                 
-                scaled_loss = loss * scaling_factor * 0.1
+                scaled_loss = loss * scaling_factor
                 scaled_loss = scaled_loss.mean()  # Mitteln über alle Pixel
                 
                 scaled_loss.backward()
