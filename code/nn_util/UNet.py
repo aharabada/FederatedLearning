@@ -92,7 +92,7 @@ class PupilSegmentationUNet(nn.Module):
             if isinstance(m, nn.Dropout2d):
                 m.train()
 
-    def monte_carlo_inference(self, x: torch.Tensor, num_samples: int = 8) -> dict:
+    def monte_carlo_inference(self, x: torch.Tensor, num_samples: int = 5) -> dict:
         """
         Executes Monte Carlo Inference.
         
@@ -112,13 +112,11 @@ class PupilSegmentationUNet(nn.Module):
                 pred = self.forward(x)
                 predictions.append(pred)
                 
-        # Stack predictions und berechne Statistiken
         predictions = torch.stack(predictions)
         mean_prediction = torch.mean(predictions, dim=0)
         std_prediction = torch.std(predictions, dim=0)
         
-        # Nutze die Standardabweichung als Unsicherheitsmaß
-        # Optional: Normalisiere die Standardabweichung auf [0,1]
+        # normalized uncertainty
         uncertainty = std_prediction / (torch.max(std_prediction) + 1e-8)
         
         return {
@@ -126,6 +124,26 @@ class PupilSegmentationUNet(nn.Module):
             'std_prediction': std_prediction,
             'uncertainty': uncertainty
         }
+        
+    def mc_consistency_loss(self, image, num_samples=10):
+        self.train()
+        self.enable_dropout()
+
+        predictions = []
+        with torch.enable_grad():
+            for _ in range(num_samples):
+                pred = self(image)
+                predictions.append(pred)
+        predictions = torch.stack(predictions)
+
+        variance = torch.var(predictions, dim=0)
+        
+        # get 10 % of the highest variances
+        top_variances = torch.topk(variance.flatten(), int((144*144) * 0.1))
+        loss = torch.mean(top_variances.values)
+        
+        #loss = torch.mean(variance)
+        return loss
 
 def load_model(model_path, dropout_p: float = 0.1):
     model = PupilSegmentationUNet(dropout_p=dropout_p)

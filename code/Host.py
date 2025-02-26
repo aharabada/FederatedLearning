@@ -20,6 +20,10 @@ class Host:
         self.test_metrics = None
         
     def evaluate_model(self, dataset):
+        # set seed
+        torch.manual_seed(420)
+        np.random.seed(420)
+        
         self.model.eval()
         criterion = DiceBCELoss()
         total_loss = 0
@@ -34,28 +38,36 @@ class Host:
                 total_loss += criterion(output, target).item()
                 total_iou += calculate_iou(output, target).item()
                 num_samples += 1
+                
+                data.detach()
+                target.detach()
+                output.detach()
         
         avg_loss = total_loss / num_samples
         avg_iou = total_iou / num_samples
+        
+        # reset seed
+        torch.seed()
+        np.random.seed()
         
         return {
             'loss': avg_loss,
             'iou': avg_iou
         }
             
-    def __save_model(self, path: str = "models"):
+    def save_model(self, path: str = "models", model_name: str = "host_model_unet_320.pth"):
         os.makedirs(path, exist_ok=True)
-        model_path = os.path.join(path, "host_model_unet_320_dropout.pth")
+        model_path = os.path.join(path, model_name)
         torch.save(self.model.state_dict(), model_path)
         print(f"Model saved to {model_path}")
         
-    def __save_training_data(self, path: str = "training_process_data"):
+    def __save_training_data(self, path: str = "training_process_data", file_name: str = "unet_320_dropout"):
         os.makedirs(path, exist_ok=True)
-        np.save(os.path.join(path, "train_losses_unet_320_dropout.npy"), np.array(self.train_losses))
-        np.save(os.path.join(path, "valid_losses_unet_320_dropout.npy"), np.array(self.valid_losses))
+        np.save(os.path.join(path, f"train_losses_{file_name}.npy"), np.array(self.train_losses))
+        np.save(os.path.join(path, f"valid_losses_{file_name}.npy"), np.array(self.valid_losses))
         
         if self.test_metrics is not None:
-            np.save(os.path.join(path, "test_metrics_unet_320_dropout.npy"), np.array([
+            np.save(os.path.join(path, f"test_metrics_{file_name}.npy"), np.array([
                 self.test_metrics['loss'],
                 self.test_metrics['iou']
             ]))
@@ -116,7 +128,7 @@ class Host:
             print(f"Current LR: {optimizer.param_groups[0]['lr']:.6f}")
             print("-" * 50)
             
-        self.__save_model()
+        self.save_model()
         
         print("\nEvaluating final model performance on test set...")
         self.test_metrics = self.evaluate_model(test_dataset)
@@ -127,10 +139,17 @@ class Host:
         print(f"Test IoU: {self.test_metrics['iou']:.6f}")
         print("=" * 50)
         
-        self.__save_training_data()
+        # self.__save_training_data()
         
     def update_model(self, new_parameters: dict):
         self.model.load_state_dict(new_parameters, strict=True)
+        
+    def update_model_by_gradient(self, new_gradient: dict):
+        for name, param in self.model.named_parameters():
+            if name in new_gradient:
+                param.grad = new_gradient[name]
+                
+        
 
 
 
@@ -184,7 +203,7 @@ if __name__ == "__main__":
     }
     
     host = Host(unet, data_loader)
-    host.inital_training(25)
+    host.inital_training(50)
 
     # model = load_model("models/host_model_unet_320.pth")
     # test_loader = create_data_loader("dataset/1k_images/host_data/test_data/binary_mask/annotations_binary_mask.csv",

@@ -2,7 +2,6 @@ import torch
 import tqdm
 import random
 import copy
-
 from nn_util.Metrics import DiceBCELoss
 
 class Client:
@@ -13,71 +12,70 @@ class Client:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print(f"{self.name} Device: {self.device}")
         self.train_losses = []
-        
-    def train(self, iterations: int, n_datapoints: int = 0, labeling_method: str = "true labels"):
-        if n_datapoints <= 0:
+        self.latest_gradients = None
+        self.dataset_counter = 0
+       
+    def train(self, iterations: int, n_datapoints: int = 0, use_mcd: bool = True):
+        if 0 >= n_datapoints > len(self.data_loader.dataset):
             n_datapoints = len(self.data_loader.dataset)
-            
+           
         self.model.to(self.device)
-        
-        # randomly choose n_datapoints from the dataset
+       
         train_dataset = copy.deepcopy(self.data_loader)
-        idx = random.sample(range(len(train_dataset.dataset)), n_datapoints)
-        train_dataset.dataset.data = [train_dataset.dataset.data[i] for i in idx]
-        train_dataset.dataset.labels = [train_dataset.dataset.labels[i] for i in idx]
-        
-        criterion = DiceBCELoss()
+        start_index = ((self.dataset_counter) * n_datapoints) % len(self.data_loader.dataset)
+        end_index = start_index + n_datapoints
+        if end_index > len(self.data_loader.dataset):
+            end_index = len(self.data_loader.dataset)
+            # reset dataset counter. since we add +1 at the end, we need to set it to -1
+            self.dataset_counter = -1
+       
+        train_dataset.dataset.data = [train_dataset.dataset.data[i] for i in range(start_index, end_index)]
+        train_dataset.dataset.labels = [train_dataset.dataset.labels[i] for i in range(start_index, end_index)]
+       
         optimizer = torch.optim.Adam(self.model.parameters(), lr=1e-4)
-        
+              
         for epoch in range(iterations):
             self.model.train()
             total_loss = 0
             num_samples = 0
-            
+           
             for data, target in tqdm.tqdm(train_dataset, desc=f"Epoch {epoch+1}/{iterations}"):
                 data = data.float().to(self.device)
-                
-                if labeling_method == "monte carlo dropout":
-                    # Monte Carlo Inference to create own labels
-                    info = self.model.monte_carlo_inference(data, num_samples=16)
-                    target = info['mean_prediction']
-                    uncertainty = info['uncertainty']  # Jetzt uncertainty statt entropy
-                elif labeling_method == "true labels":
-                    uncertainty = 0
-                elif labeling_method == "contrastive learning":
-                    # TODO: implement me
-                    uncertainty = 0
-                else:
-                    raise Exception(f"Unknown labeling method: {labeling_method}")
-                    
-                target = target.float().to(self.device)
-                
+               
                 optimizer.zero_grad()
-                output = self.model(data)
-                loss = criterion(output, target)
+               
+                if use_mcd:
+                    loss = self.model.mc_consistency_loss(data)
+                else:
+                    target = target.float().to(self.device)
+                    criterion = DiceBCELoss()
+                    loss = criterion(self.model(data), target)
+                    target.detach()
+                   
+                data.detach()
+                               
+                loss.backward()
                 
-                # Skaliere den Loss pixel-weise mit der Unsicherheit
-                scaling_factor = 1.0 / (1.0 + uncertainty)
+                # Store the latest gradients
+                self.latest_gradients = {name: param.grad.clone().detach() for name, param in self.model.named_parameters() if param.grad is not None}
                 
-                
-                scaled_loss = loss * scaling_factor
-                scaled_loss = scaled_loss.mean()  # Mitteln über alle Pixel
-                
-                scaled_loss.backward()
-                #loss.backward()
                 optimizer.step()
-                
+               
                 total_loss += loss.item()
                 num_samples += 1
-            
+           
             avg_loss = total_loss / num_samples
             self.train_losses.append(avg_loss)
-            
+           
             print(f"Epoch {epoch + 1}/{iterations} - Train Loss: {avg_loss:.4f}")
-            
+           
+        self.dataset_counter += 1
+                  
     def fetch_parameters(self):
         return self.model.state_dict()
     
+    def fetch_gradients(self):
+        return self.latest_gradients
+   
     def update_model(self, new_parameters: dict):
         self.model.load_state_dict(new_parameters, strict=True)
-    

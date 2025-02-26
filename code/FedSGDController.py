@@ -13,7 +13,7 @@ from nn_util.DataSet import create_data_loader, EyeBinaryMaskDataset
 from nn_util.Names import names
 
 
-class FedAvgController:
+class FedSGDController:
     RUNS = 1
     N_CLIENTS = 4
     N_DATAPOINTS_PER_ROUND = 64
@@ -68,7 +68,7 @@ class FedAvgController:
 
         del client_dataloader
         
-    def __aggregate_parameters(self, client_parameters: list[dict]):
+    def __aggregate_gradients(self, client_parameters: list[dict]):
         new_parameters = {}
         n_clients = len(client_parameters)
         
@@ -139,27 +139,27 @@ class FedAvgController:
             for iteration in range(self.ROUNDS):
                 print(f"\nStarting round {iteration + 1}/{self.ROUNDS}...")
                 print("=" * 50)
-                
+                            
                 # train each client
                 for i, client in enumerate(self.clients):
                     print(f"\nTraining Client {client.name} ({i + 1}/{self.N_CLIENTS})...")
                     client.train(self.CLIENT_ITERATIONS,
-                                n_datapoints=self.N_DATAPOINTS_PER_ROUND,
-                                use_mcd=self.USE_MCD)
+                                       n_datapoints=self.N_DATAPOINTS_PER_ROUND,
+                                       use_mcd=self.USE_MCD)
                     
                 # fetch client data
                 print("\nFetching client data...")
-                client_parameters = []
+                client_gradients = []
                 for client in self.clients:
-                    client_parameters.append(client.fetch_parameters())
+                    client_gradients.append(client.fetch_gradients())
                 
                 # aggregate client parameters
                 print("Aggregating client parameters...")
-                new_parameters = self.__aggregate_parameters(client_parameters)
+                new_gradient = self.__aggregate_gradients(client_gradients)
                 
                 # send new parameters to host
                 print("Updating host model")
-                self.host.update_model(new_parameters)
+                self.host.update_model(new_gradient)
                 
                 # send new parameters to clients
                 print("Sending updated model to clients...")

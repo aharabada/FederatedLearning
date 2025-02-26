@@ -1,6 +1,0 @@
-- Mit Pretraining des Hosts starten
-- ohne Pretraining starten
-- verschiedene FL Methoden vergleichen
-
-- Clients volle Informationen auf Clients
-- Clients ohne Label -> Monte Carlo Dropout
