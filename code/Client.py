@@ -1,10 +1,18 @@
 import torch
 import tqdm
-import random
 import copy
 from nn_util.Metrics import DiceBCELoss
 
 class Client:
+    """
+    The Client class represents a federated learning client that trains a local model on its own data and communicates with a central server.
+    
+    Methods:
+        train(iterations, n_datapoints=0, use_mcd=True, store_gradients=False): Trains the local model for a given number of iterations.
+        fetch_parameters(): Fetches the local model parameters.
+        fetch_gradients(): Fetches the gradients of the local model.
+        update_model(new_parameters): Updates the local model with new parameters.
+    """
     def __init__(self, name: str, model: torch.nn.Module, data_loader: dict[str, torch.utils.data.DataLoader]):
         self.name = name
         self.model = model
@@ -15,7 +23,19 @@ class Client:
         self.latest_gradients = []
         self.dataset_counter = 0
        
-    def train(self, iterations: int, n_datapoints: int = 0, use_mcd: bool = True, store_gradients: bool = False):
+    def train(self, iterations: int, n_datapoints: int = 0, use_mcd: bool = True, store_gradients: bool = False) -> None:
+        """
+        Trains the local model for a given number of iterations.
+
+        Args:
+            iterations (int): Number of training iterations (epochs).
+            n_datapoints (int, optional): Number of data points to use for training. Defaults to 0, which means using the entire dataset.
+            use_mcd (bool, optional): Whether to use Monte Carlo Dropout for consistency loss. Defaults to True.
+            store_gradients (bool, optional): Whether to store the gradients after each iteration. Defaults to False. (Used for FedSGD)
+
+        Returns:
+            None
+        """
         if 0 >= n_datapoints > len(self.data_loader.dataset):
             n_datapoints = len(self.data_loader.dataset)
            
@@ -71,7 +91,6 @@ class Client:
                 total_loss += loss.item()
                 num_samples += 1
                 
-                # Optional: force garbage collection
                 if torch.cuda.is_available():
                     torch.cuda.empty_cache()
             
@@ -82,11 +101,32 @@ class Client:
         
         self.dataset_counter += 1
                   
-    def fetch_parameters(self):
+    def fetch_parameters(self) -> dict:
+        """
+        Fetches the current parameters of the local model.
+
+        Returns:
+            dict: A dictionary containing the model's state_dict, which includes all the parameters of the model.
+        """
         return self.model.state_dict()
     
-    def fetch_gradients(self):
+    def fetch_gradients(self) -> list[dict[str, torch.Tensor]]:
+        """
+        Fetches all gradients of the local model after the last training iteration.
+
+        Returns:
+            list: A list of dictionaries containing the gradients of the model's parameters.
+        """
         return self.latest_gradients
    
     def update_model(self, new_parameters: dict):
+        """
+        Updates the local model with new parameters.
+
+        Args:
+            new_parameters (dict): A dictionary containing the new parameters to update the model with.
+
+        Returns:
+            None
+        """
         self.model.load_state_dict(new_parameters, strict=True)

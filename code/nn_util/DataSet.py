@@ -3,36 +3,28 @@ from torchvision.io import read_image
 from torchvision import transforms
 import torch
 import pandas as pd
-
-class EyeDiameterDataset(Dataset):
-    def __init__(self, annotations_file: str):
-        self.img_labels = pd.read_csv(annotations_file)
-        
-    def __len__(self):
-        return len(self.img_labels)
-    
-    def __getitem__(self, idx):
-        img_path = self.img_labels.iloc[idx, 0]
-        image = read_image(img_path).float()
-        
-        # remove alpha channel
-        if image.shape[0] == 4:
-            image = image[:3, :, :]
-        
-        transform = transforms.Compose([
-            transforms.Grayscale(num_output_channels=1),
-            transforms.CenterCrop(min(image.shape[1:])),
-            transforms.Resize((128, 128)),
-            transforms.ConvertImageDtype(torch.float),
-            transforms.Normalize(mean=[0.5], std=[0.5])
-        ])
-        
-        image = transform(image)
-        label = torch.tensor(float(self.img_labels.iloc[idx, 1]), dtype=torch.float32)
-        return image, label
     
     
 class EyeBinaryMaskDataset(Dataset):
+    """
+    A custom dataset class for loading and preprocessing eye binary mask images and their corresponding labels.
+    The dataset is provided by Jan Kaminski working on his masters thesis at LUH at the institute CHI.
+    
+    Attributes:
+        data (list): A list to store preprocessed image data.
+        labels (list): A list to store preprocessed label data.
+        length (int): The length of the dataset.
+    Args:
+        annotations_file (str): Path to the CSV file containing image and label paths.
+        preprocess (bool): Whether to preprocess the data and labels. Default is True.
+        length (int): The length of the dataset. Default is 0.
+    Methods:
+        __preprocess_data(): Preprocesses the image data by reading, transforming, and storing it.
+        __preprocess_labels(): Preprocesses the label data by reading, transforming, and storing it.
+        __len__(): Returns the length of the dataset.
+        __getitem__(idx): Returns the image and label at the specified index.
+    """
+    
     def __init__(self, annotations_file: str, preprocess: bool = True, length: int = 0):
         self.data = []
         self.labels = []
@@ -44,6 +36,9 @@ class EyeBinaryMaskDataset(Dataset):
             self.__preprocess_labels()
         
     def __preprocess_data(self):
+        """
+        Preprocesses the image data by reading, transforming, and storing it.
+        """
         for idx in range(len(self.img_labels)):
             img_path = self.img_labels.iloc[idx, 0]
             image = read_image(img_path).float()
@@ -62,6 +57,9 @@ class EyeBinaryMaskDataset(Dataset):
             self.data.append(image)
             
     def __preprocess_labels(self):
+        """
+        Preprocesses the label data by reading, transforming, and storing it.
+        """
         for idx in range(len(self.img_labels)):
             label_path = self.img_labels.iloc[idx, 1]
             label = read_image(label_path).float()
@@ -89,7 +87,19 @@ class EyeBinaryMaskDataset(Dataset):
         return self.data[idx], self.labels[idx]
 
 
-def create_data_loader(dataset_path: str, dataset_type: object = EyeDiameterDataset, batch_size: int = 64, preprocess: bool = True, length: int = 0) -> torch.utils.data.DataLoader:
+def create_data_loader(dataset_path: str, dataset_type: object = EyeBinaryMaskDataset, batch_size: int = 8, preprocess: bool = True, length: int = 0) -> torch.utils.data.DataLoader:
+    """
+    Creates a data loader for the specified dataset.
+    
+    Args:
+        dataset_path (str): Path to the dataset.
+        dataset_type (object): The dataset class to use. Default is EyeBinaryMaskDataset.
+        batch_size (int): The batch size. Default is 8.
+        preprocess (bool): Whether to preprocess the data and labels. Default is True.
+        length (int): The length of the dataset. Default is 0. This case is handled separately in the nn-clients.
+    Returns:
+        torch.utils.data.DataLoader: The data loader for the specified dataset.
+    """
     dataset = dataset_type(dataset_path, preprocess, length)
     dataloader = torch.utils.data.DataLoader(
         dataset=dataset,

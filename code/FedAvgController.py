@@ -14,6 +14,22 @@ from nn_util.Names import names
 
 
 class FedAvgController:
+    """
+    FedAvgController orchestrates the Federated Averaging process for training U-Net models.
+    
+    This class handles the initialization of the host and clients, the aggregation of client parameters,
+    and the overall training process across multiple rounds and runs. It also supports testing the model
+    performance on a test dataset.
+    
+    Methods:
+        run(test: bool, data: DataCollector) -> None: Runs the Federated Averaging process.
+        test_model() -> dict: Tests the model performance on a test dataset.
+        
+        __initiate_host_and_clients() -> None: Initializes the host and clients.
+        __aggregate_parameters(client_parameters: list[dict]) -> dict: Aggregates the parameters of all clients.
+        __save_config(path: str) -> None: Saves the configuration of the experiment.
+    """
+    
     RUNS = 1
     N_CLIENTS = 4
     N_DATAPOINTS_PER_ROUND = 64
@@ -37,6 +53,9 @@ class FedAvgController:
         self.experiment_name = f"FedAvg_{"MCD" if self.USE_MCD else "GT"}_N{self.RUNS}_R{self.ROUNDS}_C{self.N_CLIENTS}_I{self.CLIENT_ITERATIONS}_D{self.N_DATAPOINTS_PER_ROUND}"
         
     def __initiate_host_and_clients(self):
+        """
+        Initializes the host and clients for the Federated Averaging process.
+        """
         # delete old host and clients
         if self.host is not None:
             del self.host
@@ -71,6 +90,9 @@ class FedAvgController:
         del client_dataloader
         
     def __aggregate_parameters(self, client_parameters: list[dict]):
+        """
+        Aggregates the parameters of all clients.
+        """
         new_parameters = {}
         n_clients = len(client_parameters)
         
@@ -89,6 +111,9 @@ class FedAvgController:
         return deepcopy(new_parameters)
     
     def __save_config(self, path: str):
+        """
+        Saves the configuration of the experiment.
+        """
         os.makedirs(path, exist_ok=True)
         with open(os.path.join(path, "config.json"), "w") as file:
             json.dump({
@@ -100,7 +125,13 @@ class FedAvgController:
                 "USE_MCD": self.USE_MCD
             }, file)
         
-    def test_model(self):
+    def test_model(self) -> dict:
+        """
+        Tests the model performance on a test dataset.
+
+        Returns:
+            dict: A dictionary containing the test loss and IoU metrics.
+        """
         test_dataset = create_data_loader("dataset/1k_images/final_test/binary_mask/annotations_binary_mask.csv", 
                                           dataset_type=EyeBinaryMaskDataset, 
                                           batch_size=8, 
@@ -118,7 +149,14 @@ class FedAvgController:
         return test_metrics
         
     @data_collector
-    def run(self, test: bool, data):
+    def run(self, test: bool, data) -> None:
+        """
+        Runs the Federated Averaging process.
+
+        Args:
+            test (bool): If True, the model will be tested after each round.
+            data (DataCollector): An instance of DataCollector to store experiment data.
+        """
         # setting up data collector
         data.experiment = self.experiment_name
         data.plot_data = {"Loss": [], "IoU": []}

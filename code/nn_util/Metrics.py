@@ -1,6 +1,9 @@
 import torch
 
 class DiceBCELoss(torch.nn.Module):
+    """
+    Calculate the Dice Loss and BCE Loss and return the sum of both.
+    """
     def __init__(self):
         super(DiceBCELoss, self).__init__()
         self.bce = torch.nn.BCELoss()
@@ -22,6 +25,9 @@ class DiceBCELoss(torch.nn.Module):
     
     
 def calculate_iou(pred, target):
+    """
+    Calculate the Intersection over Union (IoU) of the predicted mask and the target mask.
+    """
     target = target.float()
     if target.max() > 1 or target.min() < 0:
         target = (target - target.min()) / (target.max() - target.min() + 1e-8)

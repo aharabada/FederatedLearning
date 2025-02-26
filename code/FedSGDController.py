@@ -14,6 +14,22 @@ from nn_util.Names import names
 
 
 class FedSGDController:
+    """
+    FedSGDController orchestrates the federated learning process using Stochastic Gradient Descent (SGD).
+    
+    This class handles the initialization of the host and clients, the aggregation of gradients, 
+    and the overall training and evaluation process across multiple rounds and runs.
+    
+    Methods:
+        run(test: bool, data: DataCollector) -> None:
+            Runs the federated learning process for the specified number of rounds and runs.
+        test_model() -> dict:
+            Evaluates the host model on the test set and returns the loss and IoU.
+        
+        __initiate_host_and_clients() -> None: Initializes the host and clients.
+        __aggregate_gradients(client_gradients: list[dict]) -> dict: Aggregates the gradients of the clients.
+        __save_config(path: str) -> None: Saves the configuration of the experiment.
+    """
     RUNS = 1
     N_CLIENTS = 4
     N_DATAPOINTS_PER_ROUND = 64
@@ -37,6 +53,9 @@ class FedSGDController:
         self.experiment_name = f"FedSTD_{"MCD" if self.USE_MCD else "GT"}_N{self.RUNS}_R{self.ROUNDS}_C{self.N_CLIENTS}_I{self.CLIENT_ITERATIONS}_D{self.N_DATAPOINTS_PER_ROUND}"
         
     def __initiate_host_and_clients(self):
+        """
+        Initializes the host and clients for the Federated Averaging process.
+        """
         # delete old host and clients
         if self.host is not None:
             del self.host
@@ -70,12 +89,18 @@ class FedSGDController:
         del client_dataloader
         
     def __aggregate_gradients(self, client_gradients: list[dict]):
+        """
+        Aggregates the gradients of all clients.
+        """
         new_parameters = {}
         for name, param in self.host.model.named_parameters():
             new_parameters[name] = torch.stack([client_gradient[name] for client_gradient in client_gradients]).mean(dim=0)
         return new_parameters
     
     def __save_config(self, path: str):
+        """
+        Saves the configuration of the experiment.
+        """
         os.makedirs(path, exist_ok=True)
         with open(os.path.join(path, "config.json"), "w") as file:
             json.dump({
@@ -87,7 +112,13 @@ class FedSGDController:
                 "USE_MCD": self.USE_MCD
             }, file)
         
-    def test_model(self):
+    def test_model(self) -> dict:
+        """
+        Tests the model performance on a test dataset.
+
+        Returns:
+            dict: A dictionary containing the test loss and IoU metrics.
+        """
         test_dataset = create_data_loader("dataset/1k_images/final_test/binary_mask/annotations_binary_mask.csv", 
                                           dataset_type=EyeBinaryMaskDataset, 
                                           batch_size=8, 
@@ -105,7 +136,14 @@ class FedSGDController:
         return test_metrics
         
     @data_collector
-    def run(self, test: bool, data):
+    def run(self, test: bool, data) -> None:
+        """
+        Runs the Federated Averaging process.
+
+        Args:
+            test (bool): If True, the model will be tested after each round.
+            data (DataCollector): An instance of DataCollector to store experiment data.
+        """
         # setting up data collector
         data.experiment = self.experiment_name
         data.plot_data = {"Loss": [], "IoU": []}

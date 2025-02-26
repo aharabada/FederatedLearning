@@ -3,6 +3,15 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class DoubleConv(nn.Module):
+    """
+    A module consisting of two convolutional layers each followed by batch normalization,
+    ReLU activation, and dropout. This is used as a building block for the U-Net architecture.
+    
+    Args:
+        in_channels (int): Number of input channels.
+        out_channels (int): Number of output channels.
+        dropout_p (float): Dropout probability.
+    """
     def __init__(self, in_channels, out_channels, dropout_p=0.1):
         super().__init__()
         self.double_conv = nn.Sequential(
@@ -20,6 +29,21 @@ class DoubleConv(nn.Module):
         return self.double_conv(x)
 
 class PupilSegmentationUNet(nn.Module):
+    """
+    A U-Net model for pupil segmentation in images. This model uses an encoder-decoder
+    architecture with skip connections and dropout for regularization and Monte Carlo
+    Dropout inference. The model is designed to perform binary segmentation of the pupil
+    in eye images.
+    
+    Args:
+        dropout_p (float): Dropout probability.
+        
+    Methods:
+        forward(x): Performs a forward pass through the network.
+        enable_dropout(): Activates Dropout Layers for Monte Carlo Inference.
+        mc_consistency_loss(image, num_samples=10, percentage=0.1): Computes the
+            consistency loss for Monte Carlo Dropout inference.
+    """
     def __init__(self, dropout_p=0.1):
         super().__init__()
         self.dropout_p = dropout_p
@@ -86,46 +110,25 @@ class PupilSegmentationUNet(nn.Module):
         # Final 1x1 Convolution for binary segmentation
         return torch.sigmoid(self.final_conv(x))
 
-    def enable_dropout(self):
+    def enable_dropout(self) -> None:
         """Activates Dropout Layers for Monte Carlo Inference"""
         for m in self.modules():
             if isinstance(m, nn.Dropout2d):
                 m.train()
 
-    def monte_carlo_inference(self, x: torch.Tensor, num_samples: int = 5) -> dict:
+        
+    def mc_consistency_loss(self, image, num_samples=10, percentage=0.1) -> torch.Tensor:
         """
-        Executes Monte Carlo Inference.
+        Computes the consistency loss for Monte Carlo Dropout inference.
         
         Args:
-            x (torch.Tensor): Input image
-            num_samples (int): Amount of Monte Carlo samples
-            
+            image (torch.Tensor): The input image tensor for which the consistency loss is computed.
+            num_samples (int): The number of Monte Carlo samples to draw. Default is 10.
+            percentage (float): The percentage of pixels with the highest variance to consider for the loss. Default is 0.1.
+        
         Returns:
-            dict: Dictionary with mean_prediction, std_prediction and uncertainty
+            torch.Tensor: The computed consistency loss.
         """
-        self.eval()
-        self.enable_dropout()
-        
-        predictions = []
-        with torch.no_grad():
-            for _ in range(num_samples):
-                pred = self.forward(x)
-                predictions.append(pred)
-                
-        predictions = torch.stack(predictions)
-        mean_prediction = torch.mean(predictions, dim=0)
-        std_prediction = torch.std(predictions, dim=0)
-        
-        # normalized uncertainty
-        uncertainty = std_prediction / (torch.max(std_prediction) + 1e-8)
-        
-        return {
-            'mean_prediction': mean_prediction,
-            'std_prediction': std_prediction,
-            'uncertainty': uncertainty
-        }
-        
-    def mc_consistency_loss(self, image, num_samples=10, percentage=0.1):
         self.train()
         self.enable_dropout()
 
@@ -143,7 +146,17 @@ class PupilSegmentationUNet(nn.Module):
         
         return loss
 
-def load_model(model_path, dropout_p: float = 0.1):
+def load_model(model_path, dropout_p: float = 0.1) -> PupilSegmentationUNet:
+    """
+    Loads a PupilSegmentationUNet model from a specified file path.
+    
+    Args:
+        model_path (str): Path to the file containing the model state dictionary.
+        dropout_p (float): Dropout probability to be used in the model. Default is 0.1.
+        
+    Returns:
+        PupilSegmentationUNet: The loaded model with the specified dropout probability.
+    """
     model = PupilSegmentationUNet(dropout_p=dropout_p)
     model.load_state_dict(torch.load(model_path))
     return model

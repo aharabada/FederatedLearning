@@ -4,6 +4,14 @@ import pickle
 import os
 
 class CollectedData:
+    """
+    CollectedData class is used to store and manage data collected from experiments.
+    It provides methods to save the data to disk and generate plots for visualization.
+    
+    Methods:
+        save: Save the data object to disk as a pickle file.
+        plot: Generate plots for the data stored in plot_data.
+    """
     experiment: str = "Unnamed Experiment"
     plot_data: dict[str, np.ndarray] = {}
     other_data: dict[str, any] = {}
