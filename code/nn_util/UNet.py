@@ -125,7 +125,7 @@ class PupilSegmentationUNet(nn.Module):
             'uncertainty': uncertainty
         }
         
-    def mc_consistency_loss(self, image, num_samples=10):
+    def mc_consistency_loss(self, image, num_samples=10, percentage=0.1):
         self.train()
         self.enable_dropout()
 
@@ -138,11 +138,9 @@ class PupilSegmentationUNet(nn.Module):
 
         variance = torch.var(predictions, dim=0)
         
-        # get 10 % of the highest variances
-        top_variances = torch.topk(variance.flatten(), int((144*144) * 0.1))
+        top_variances = torch.topk(variance.flatten(), int((144*144) * percentage))
         loss = torch.mean(top_variances.values)
         
-        #loss = torch.mean(variance)
         return loss
 
 def load_model(model_path, dropout_p: float = 0.1):

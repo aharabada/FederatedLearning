@@ -45,7 +45,9 @@ class FedAvgController:
                 del client
             self.clients = []
         gc.collect()
-        torch.cuda.empty_cache()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+            
             
         # prepare host
         self.host = Host(load_model(model_path=self.path_to_host_model), None)

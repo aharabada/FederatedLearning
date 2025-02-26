@@ -34,7 +34,7 @@ class FedSGDController:
         self.USE_MCD = config.get("USE_MCD", self.USE_MCD)
         self.RUNS = config.get("RUNS", self.RUNS)
         # generate experiment name
-        self.experiment_name = f"FedAvg_{"MCD" if self.USE_MCD else "GT"}_N{self.RUNS}_R{self.ROUNDS}_C{self.N_CLIENTS}_I{self.CLIENT_ITERATIONS}_D{self.N_DATAPOINTS_PER_ROUND}"
+        self.experiment_name = f"FedSTD_{"MCD" if self.USE_MCD else "GT"}_N{self.RUNS}_R{self.ROUNDS}_C{self.N_CLIENTS}_I{self.CLIENT_ITERATIONS}_D{self.N_DATAPOINTS_PER_ROUND}"
         
     def __initiate_host_and_clients(self):
         # delete old host and clients
@@ -45,7 +45,8 @@ class FedSGDController:
                 del client
             self.clients = []
         gc.collect()
-        torch.cuda.empty_cache()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
             
         # prepare host
         self.host = Host(load_model(model_path=self.path_to_host_model), None)
@@ -68,23 +69,11 @@ class FedSGDController:
 
         del client_dataloader
         
-    def __aggregate_gradients(self, client_parameters: list[dict]):
+    def __aggregate_gradients(self, client_gradients: list[dict]):
         new_parameters = {}
-        n_clients = len(client_parameters)
-        
-        # Initialisiere mit den Parametern des ersten Clients
-        for name, param in client_parameters[0].items():
-            new_parameters[name] = torch.zeros_like(param, dtype=torch.float32)
-            
-            # Einfacher Durchschnitt über alle Clients
-            for client_params in client_parameters:
-                new_parameters[name] += client_params[name].float() / n_clients
-                
-            # Konvertiere zurück zum ursprünglichen Typ wenn nötig
-            if param.dtype != torch.float32:
-                new_parameters[name] = new_parameters[name].to(dtype=param.dtype)
-        
-        return deepcopy(new_parameters)
+        for name, param in self.host.model.named_parameters():
+            new_parameters[name] = torch.stack([client_gradient[name] for client_gradient in client_gradients]).mean(dim=0)
+        return new_parameters
     
     def __save_config(self, path: str):
         os.makedirs(path, exist_ok=True)
@@ -144,22 +133,28 @@ class FedSGDController:
                 for i, client in enumerate(self.clients):
                     print(f"\nTraining Client {client.name} ({i + 1}/{self.N_CLIENTS})...")
                     client.train(self.CLIENT_ITERATIONS,
-                                       n_datapoints=self.N_DATAPOINTS_PER_ROUND,
-                                       use_mcd=self.USE_MCD)
+                                 n_datapoints=self.N_DATAPOINTS_PER_ROUND,
+                                 use_mcd=self.USE_MCD,
+                                 store_gradients=True)
                     
                 # fetch client data
                 print("\nFetching client data...")
                 client_gradients = []
                 for client in self.clients:
-                    client_gradients.append(client.fetch_gradients())
+                    client_gradients.extend(client.fetch_gradients())
                 
                 # aggregate client parameters
                 print("Aggregating client parameters...")
                 new_gradient = self.__aggregate_gradients(client_gradients)
                 
+                del client_gradients
+                gc.collect()
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
+                
                 # send new parameters to host
                 print("Updating host model")
-                self.host.update_model(new_gradient)
+                self.host.update_model_by_gradient(new_gradient)
                 
                 # send new parameters to clients
                 print("Sending updated model to clients...")

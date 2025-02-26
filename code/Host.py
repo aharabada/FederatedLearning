@@ -39,9 +39,12 @@ class Host:
                 total_iou += calculate_iou(output, target).item()
                 num_samples += 1
                 
-                data.detach()
-                target.detach()
-                output.detach()
+                data.detach().cpu()
+                del data
+                target.detach().cpu()
+                del target
+                output.detach().cpu()
+                del output
         
         avg_loss = total_loss / num_samples
         avg_iou = total_iou / num_samples
@@ -147,7 +150,10 @@ class Host:
     def update_model_by_gradient(self, new_gradient: dict):
         for name, param in self.model.named_parameters():
             if name in new_gradient:
-                param.grad = new_gradient[name]
+                param.grad = new_gradient[name].to(self.device)
+                                
+        optimizer = torch.optim.SGD(self.model.parameters(), lr=0.005)
+        optimizer.step()
                 
         
 
