@@ -59,7 +59,6 @@ class Client:
             total_loss = 0
             num_samples = 0
             
-            # Clear previous gradients list to avoid memory build-up
             self.latest_gradients = []
             
             for data, target in tqdm.tqdm(train_dataset, desc=f"Epoch {epoch+1}/{iterations}"):

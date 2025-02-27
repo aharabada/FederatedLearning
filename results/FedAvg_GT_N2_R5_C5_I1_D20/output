@@ -1,0 +1,348 @@
+Host Device: cuda
+Friederike Device: cuda
+Jürgen Device: cuda
+Karl Device: cuda
+Horst Device: cuda
+Rainer Device: cuda
+
+Evaluating model performance on test set...
+
+Test Results:
+==================================================
+Test Loss: 0.174229
+Test IoU: 0.659868
+==================================================
+
+Starting round 1/5...
+==================================================
+
+Training Client Friederike (1/5)...
+Epoch 1/1 - Train Loss: 0.2868
+
+Training Client Jürgen (2/5)...
+Epoch 1/1 - Train Loss: 0.3402
+
+Training Client Karl (3/5)...
+Epoch 1/1 - Train Loss: 0.3575
+
+Training Client Horst (4/5)...
+Epoch 1/1 - Train Loss: 0.2252
+
+Training Client Rainer (5/5)...
+Epoch 1/1 - Train Loss: 0.3726
+
+Fetching client data...
+Aggregating client parameters...
+Updating host model
+Sending updated model to clients...
+
+Evaluating model performance on test set...
+
+Test Results:
+==================================================
+Test Loss: 0.158186
+Test IoU: 0.709213
+==================================================
+
+Starting round 2/5...
+==================================================
+
+Training Client Friederike (1/5)...
+Epoch 1/1 - Train Loss: 0.2900
+
+Training Client Jürgen (2/5)...
+Epoch 1/1 - Train Loss: 0.3491
+
+Training Client Karl (3/5)...
+Epoch 1/1 - Train Loss: 0.2734
+
+Training Client Horst (4/5)...
+Epoch 1/1 - Train Loss: 0.2903
+
+Training Client Rainer (5/5)...
+Epoch 1/1 - Train Loss: 0.3536
+
+Fetching client data...
+Aggregating client parameters...
+Updating host model
+Sending updated model to clients...
+
+Evaluating model performance on test set...
+
+Test Results:
+==================================================
+Test Loss: 0.168624
+Test IoU: 0.701047
+==================================================
+
+Starting round 3/5...
+==================================================
+
+Training Client Friederike (1/5)...
+Epoch 1/1 - Train Loss: 0.2810
+
+Training Client Jürgen (2/5)...
+Epoch 1/1 - Train Loss: 0.3640
+
+Training Client Karl (3/5)...
+Epoch 1/1 - Train Loss: 0.3021
+
+Training Client Horst (4/5)...
+Epoch 1/1 - Train Loss: 0.2403
+
+Training Client Rainer (5/5)...
+Epoch 1/1 - Train Loss: 0.2691
+
+Fetching client data...
+Aggregating client parameters...
+Updating host model
+Sending updated model to clients...
+
+Evaluating model performance on test set...
+
+Test Results:
+==================================================
+Test Loss: 0.179195
+Test IoU: 0.672231
+==================================================
+
+Starting round 4/5...
+==================================================
+
+Training Client Friederike (1/5)...
+Epoch 1/1 - Train Loss: 0.2244
+
+Training Client Jürgen (2/5)...
+Epoch 1/1 - Train Loss: 0.2603
+
+Training Client Karl (3/5)...
+Epoch 1/1 - Train Loss: 0.2680
+
+Training Client Horst (4/5)...
+Epoch 1/1 - Train Loss: 0.2938
+
+Training Client Rainer (5/5)...
+Epoch 1/1 - Train Loss: 0.3850
+
+Fetching client data...
+Aggregating client parameters...
+Updating host model
+Sending updated model to clients...
+
+Evaluating model performance on test set...
+
+Test Results:
+==================================================
+Test Loss: 0.146797
+Test IoU: 0.727434
+==================================================
+
+Starting round 5/5...
+==================================================
+
+Training Client Friederike (1/5)...
+Epoch 1/1 - Train Loss: 0.1976
+
+Training Client Jürgen (2/5)...
+Epoch 1/1 - Train Loss: 0.3013
+
+Training Client Karl (3/5)...
+Epoch 1/1 - Train Loss: 0.2270
+
+Training Client Horst (4/5)...
+Epoch 1/1 - Train Loss: 0.2727
+
+Training Client Rainer (5/5)...
+Epoch 1/1 - Train Loss: 0.3130
+
+Fetching client data...
+Aggregating client parameters...
+Updating host model
+Sending updated model to clients...
+
+Evaluating model performance on test set...
+
+Test Results:
+==================================================
+Test Loss: 0.160944
+Test IoU: 0.693711
+==================================================
+Host Device: cuda
+Marianne Device: cuda
+Herbert Device: cuda
+Monika Device: cuda
+Dorothea Device: cuda
+Helmut Device: cuda
+
+Evaluating model performance on test set...
+
+Test Results:
+==================================================
+Test Loss: 0.174229
+Test IoU: 0.659868
+==================================================
+
+Starting round 1/5...
+==================================================
+
+Training Client Marianne (1/5)...
+Epoch 1/1 - Train Loss: 0.2940
+
+Training Client Herbert (2/5)...
+Epoch 1/1 - Train Loss: 0.3431
+
+Training Client Monika (3/5)...
+Epoch 1/1 - Train Loss: 0.3385
+
+Training Client Dorothea (4/5)...
+Epoch 1/1 - Train Loss: 0.2234
+
+Training Client Helmut (5/5)...
+Epoch 1/1 - Train Loss: 0.3840
+
+Fetching client data...
+Aggregating client parameters...
+Updating host model
+Sending updated model to clients...
+
+Evaluating model performance on test set...
+
+Test Results:
+==================================================
+Test Loss: 0.154207
+Test IoU: 0.720991
+==================================================
+
+Starting round 2/5...
+==================================================
+
+Training Client Marianne (1/5)...
+Epoch 1/1 - Train Loss: 0.2995
+
+Training Client Herbert (2/5)...
+Epoch 1/1 - Train Loss: 0.3523
+
+Training Client Monika (3/5)...
+Epoch 1/1 - Train Loss: 0.2778
+
+Training Client Dorothea (4/5)...
+Epoch 1/1 - Train Loss: 0.2864
+
+Training Client Helmut (5/5)...
+Epoch 1/1 - Train Loss: 0.3507
+
+Fetching client data...
+Aggregating client parameters...
+Updating host model
+Sending updated model to clients...
+
+Evaluating model performance on test set...
+
+Test Results:
+==================================================
+Test Loss: 0.157349
+Test IoU: 0.707200
+==================================================
+
+Starting round 3/5...
+==================================================
+
+Training Client Marianne (1/5)...
+Epoch 1/1 - Train Loss: 0.2603
+
+Training Client Herbert (2/5)...
+Epoch 1/1 - Train Loss: 0.3475
+
+Training Client Monika (3/5)...
+Epoch 1/1 - Train Loss: 0.2926
+
+Training Client Dorothea (4/5)...
+Epoch 1/1 - Train Loss: 0.2379
+
+Training Client Helmut (5/5)...
+Epoch 1/1 - Train Loss: 0.2940
+
+Fetching client data...
+Aggregating client parameters...
+Updating host model
+Sending updated model to clients...
+
+Evaluating model performance on test set...
+
+Test Results:
+==================================================
+Test Loss: 0.166768
+Test IoU: 0.676501
+==================================================
+
+Starting round 4/5...
+==================================================
+
+Training Client Marianne (1/5)...
+Epoch 1/1 - Train Loss: 0.2468
+
+Training Client Herbert (2/5)...
+Epoch 1/1 - Train Loss: 0.2667
+
+Training Client Monika (3/5)...
+Epoch 1/1 - Train Loss: 0.2632
+
+Training Client Dorothea (4/5)...
+Epoch 1/1 - Train Loss: 0.2824
+
+Training Client Helmut (5/5)...
+Epoch 1/1 - Train Loss: 0.4004
+
+Fetching client data...
+Aggregating client parameters...
+Updating host model
+Sending updated model to clients...
+
+Evaluating model performance on test set...
+
+Test Results:
+==================================================
+Test Loss: 0.156167
+Test IoU: 0.700588
+==================================================
+
+Starting round 5/5...
+==================================================
+
+Training Client Marianne (1/5)...
+Epoch 1/1 - Train Loss: 0.1893
+
+Training Client Herbert (2/5)...
+Epoch 1/1 - Train Loss: 0.3209
+
+Training Client Monika (3/5)...
+Epoch 1/1 - Train Loss: 0.2333
+
+Training Client Dorothea (4/5)...
+Epoch 1/1 - Train Loss: 0.2456
+
+Training Client Helmut (5/5)...
+Epoch 1/1 - Train Loss: 0.3022
+
+Fetching client data...
+Aggregating client parameters...
+Updating host model
+Sending updated model to clients...
+
+Evaluating model performance on test set...
+
+Test Results:
+==================================================
+Test Loss: 0.168281
+Test IoU: 0.682542
+==================================================
+
+Collected data and generated plots saved by 'data_collector' to 'results\FedAvg_GT_N2_R5_C5_I1_D20'
+==================================================
+Experiment: FedAvg_GT_N2_R5_C5_I1_D20
+Plot Data:
+Loss: [[0.1742287089045231, 0.15818629069970205, 0.16862449221886122, 0.1791952894284175, 0.14679744151922372, 0.16094437700051528], [0.1742287089045231, 0.15420666337013245, 0.1573494655581621, 0.1667678986604397, 0.15616660393201387, 0.16828101930709985]]
+IoU: [[0.6598676764048063, 0.7092125278252822, 0.7010467510956985, 0.6722310919028062, 0.7274338625944577, 0.6937111753683823], [0.6598676764048063, 0.7209912263430082, 0.7072002612627469, 0.6765013291285589, 0.700587843473141, 0.6825423813783206]]
+Other Data:
+==================================================
+Model saved to results\FedAvg_GT_N2_R5_C5_I1_D20\model_50_FedAvg_GT_N2_R5_C5_I1_D20.pth
