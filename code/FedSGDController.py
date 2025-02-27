@@ -179,7 +179,7 @@ class FedSGDController:
                 print("\nFetching client data...")
                 client_gradients = []
                 for client in self.clients:
-                    client_gradients.extend(client.fetch_gradients())
+                    client_gradients.append(client.fetch_gradients())
                 
                 # aggregate client parameters
                 print("Aggregating client parameters...")

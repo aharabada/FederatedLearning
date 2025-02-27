@@ -20,7 +20,8 @@ class Client:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print(f"{self.name} Device: {self.device}")
         self.train_losses = []
-        self.latest_gradients = []
+        self.n_latest_gradients = 0
+        self.latest_gradients = None
         self.dataset_counter = 0
        
     def train(self, iterations: int, n_datapoints: int = 0, use_mcd: bool = True, store_gradients: bool = False) -> None:
@@ -59,7 +60,8 @@ class Client:
             total_loss = 0
             num_samples = 0
             
-            self.latest_gradients = []
+            self.n_latest_gradients = 0
+            self.latest_gradients = None
             
             for data, target in tqdm.tqdm(train_dataset, desc=f"Epoch {epoch+1}/{iterations}"):
                 data = data.float().to(self.device)
@@ -82,16 +84,23 @@ class Client:
                         if param.grad is not None:
                             current_gradients[name] = param.grad.clone()#.detach().cpu()
                             param.grad = None
+                            
+                    self.n_latest_gradients += 1
                     
-                    self.latest_gradients.append(current_gradients)
+                    if self.latest_gradients is None:
+                        self.latest_gradients = current_gradients
+                    else:
+                        # calculate incremental mean over the gradients
+                        for name, grad in current_gradients.items():
+                            self.latest_gradients[name] = self.latest_gradients[name] + (grad - self.latest_gradients[name]) / self.n_latest_gradients              
                 
                 optimizer.step()
                 
                 total_loss += loss.item()
                 num_samples += 1
                 
-                if torch.cuda.is_available():
-                    torch.cuda.empty_cache()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
             
             avg_loss = total_loss / num_samples
             self.train_losses.append(avg_loss)
