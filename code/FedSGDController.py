@@ -31,8 +31,8 @@ class FedSGDController:
         __save_config(path: str) -> None: Saves the configuration of the experiment.
     """
     RUNS = 1
-    N_CLIENTS = 4
-    N_DATAPOINTS_PER_ROUND = 64
+    N_CLIENTS = 5
+    N_DATAPOINTS_PER_ROUND = 20
     CLIENT_ITERATIONS = 1
     ROUNDS = 10
     USE_MCD = True
