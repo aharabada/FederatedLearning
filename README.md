@@ -19,9 +19,10 @@ We tested approaches with Federated Averaging (FedAvg) and Fererated Stochastik 
 
 To run the Notebooks follow these steps:
 1.  Clone this repository
-2.  Navigate to the corresponding directory on your machine.
-3.  Install python 3.12 and the required packages with pip3 install -r requirements.txt
-4.  Make sure to run the experiment Notebooks from the /FederatedLearning directory
-5.  Open Notebooks and run the cells
-6.  Grab a cup of coffee and wait (depending on your graphics card)
+3.  Navigate to the corresponding directory on your machine.
+4.  Install python 3.12 and the required packages with pip3 install -r requirements.txt
+5.  Make sure to run the experiment Notebooks from the /FederatedLearning directory
+6.  Open Notebooks and run the cells
+7.  Grab a cup of coffee and wait (depending on your graphics card)
 
+Central models pre-trained for 50 and 75 iterations can be downloaded [here](https://seafile.cloud.uni-hannover.de/d/503a24ed948a40b4b4c0/)  
