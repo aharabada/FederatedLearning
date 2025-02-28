@@ -76,7 +76,7 @@ class Host:
             ]))
         print(f"Training data saved to {path}/")
             
-    def inital_training(self, iterations: int):
+    def inital_training(self, iterations: int, model_name: str):
         self.model.to(self.device)
         
         train_dataset = self.data_loader["train"]
@@ -131,7 +131,7 @@ class Host:
             print(f"Current LR: {optimizer.param_groups[0]['lr']:.6f}")
             print("-" * 50)
             
-        self.save_model()
+        self.save_model(model_name = model_name)
         
         print("\nEvaluating final model performance on test set...")
         self.test_metrics = self.evaluate_model(test_dataset)
@@ -201,17 +201,17 @@ def visualize_predictions(model, data_loader, num_examples=5):
     plt.show()
 
 if __name__ == "__main__":
-    unet = PupilSegmentationUNet()
-    data_loader = {
-        "train": create_data_loader("dataset/1k_images/host_data/training_data/binary_mask/annotations_binary_mask.csv", EyeBinaryMaskDataset),
-        "valid": create_data_loader("dataset/1k_images/host_data/valid_data/binary_mask/annotations_binary_mask.csv", EyeBinaryMaskDataset),
-        "test": create_data_loader("dataset/1k_images/host_data/test_data/binary_mask/annotations_binary_mask.csv", EyeBinaryMaskDataset)
-    }
-    
-    host = Host(unet, data_loader)
-    host.inital_training(50)
+    # unet = PupilSegmentationUNet()
+    # data_loader = {
+    #     "train": create_data_loader("dataset/1k_images/host_data/training_data/binary_mask/annotations_binary_mask.csv", EyeBinaryMaskDataset),
+    #     "valid": create_data_loader("dataset/1k_images/host_data/valid_data/binary_mask/annotations_binary_mask.csv", EyeBinaryMaskDataset),
+    #     "test": create_data_loader("dataset/1k_images/host_data/test_data/binary_mask/annotations_binary_mask.csv", EyeBinaryMaskDataset)
+    # }
+    #
+    # host = Host(unet, data_loader)
+    # host.inital_training(25)
 
-    # model = load_model("models/host_model_unet_320.pth")
-    # test_loader = create_data_loader("dataset/1k_images/host_data/test_data/binary_mask/annotations_binary_mask.csv",
-    #                                EyeBinaryMaskDataset, batch_size=5)
-    # visualize_predictions(model, test_loader, num_examples=5)
+    model = load_model("models/host_model_2.pth")
+    test_loader = create_data_loader("dataset/1k_images/host_data/test_data/binary_mask/annotations_binary_mask.csv",
+                                   EyeBinaryMaskDataset, batch_size=5)
+    visualize_predictions(model, test_loader, num_examples=5)
